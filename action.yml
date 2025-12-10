@@ -1,0 +1,53 @@
+name: 'Branch Cleanup Bot'
+description: 'Delete branches with no recent activity'
+author: 'enaumchuk'
+inputs:
+  github-token:
+    description: 'GitHub token for API access'
+    required: false
+    default: ${{ github.token }}
+  stale-days:
+    description: 'Number of days since last commit before a branch is considered stale'
+    required: false
+    default: '90'
+  skip-unmerged:
+    description: 'Skip branches that have unmerged commits'
+    required: false
+    default: 'true'
+  skip-open-prs:
+    description: 'Skip branches with open pull requests'
+    required: false
+    default: 'true'
+  skip-branches:
+    description: 'Comma-separated list of branches excluded from processing (supports wildcards like release/*)'
+    required: false
+    default: 'main,master,develop,development,staging,production,keep-alive-*'
+  max-branches-to-delete:
+    description: 'Max number of branches to delete in a single run'
+    required: false
+    default: '500'
+  process-throttle-ms:
+    description: 'Milliseconds to wait between processing each branch'
+    required: false
+    default: '0'
+  rate-limit-threshold:
+    description: "The action will stop if the remaining GitHub API rate limit falls below this value"
+    required: false
+    default: '100'
+  continue-on-errors:
+    description: 'Continue processing other branches if an error occurs'
+    required: false
+    default: 'false'
+  dry-run:
+    description: 'Run in dry-run mode without deleting branches'
+    required: false
+    default: 'false'
+outputs:
+  deleted-branches:
+    description: 'List of deleted branches'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+branding:
+  icon: 'trash-2'
+  color: 'red'

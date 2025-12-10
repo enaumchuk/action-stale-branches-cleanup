@@ -1,0 +1,19 @@
+{
+	"name": "stale-branches-cleanup",
+	"version": "1.0.0",
+	"description": "GitHub Action tool",
+	"main": "dist/index.js",
+	"scripts": {
+	  "build": "ncc build src/index.js -o dist"
+	},
+	"keywords": ["github-action", "automation"],
+	"author": "enaumchuk",
+	"license": "MIT",
+	"dependencies": {
+	  "@actions/core": "^1.11.1",
+	  "@actions/github": "^5.1.1"
+	},
+	"devDependencies": {
+	  "@vercel/ncc": "^0.38.0"
+	}
+  }
