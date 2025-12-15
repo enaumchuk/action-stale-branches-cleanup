@@ -32631,6 +32631,7 @@ try {
 	// Parse branch exclusions
 	_actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Original skip-branches value: '${skipBranches}'`);
 	const skipBranchNames = [];
+	const skipBranchPatterns = [];
 	const skipBranchPatternsRegex = [];
 
 	// Split the input string by commas and trim whitespace from each part
@@ -32645,6 +32646,7 @@ try {
 		// 1. Replace the '*' wildcard with '.*' (match any character zero or more times).
 		const regexPattern = new RegExp('^' + item.replace(/\*/g, '.*') + '$');
 		skipBranchPatternsRegex.push(regexPattern);
+		skipBranchPatterns.push(regexPattern.source);
 
 	  } else {
 		// It's a literal branch name
@@ -32654,7 +32656,7 @@ try {
 	_actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Excluded branch names:`);
 	_actions_core__WEBPACK_IMPORTED_MODULE_0__.info(JSON.stringify(skipBranchNames, null, 2));
 	_actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Excluded branch patterns:`);
-	_actions_core__WEBPACK_IMPORTED_MODULE_0__.info(JSON.stringify(skipBranchPatternsRegex, null, 2));
+	_actions_core__WEBPACK_IMPORTED_MODULE_0__.info(JSON.stringify(skipBranchPatterns, null, 2));
 	_actions_core__WEBPACK_IMPORTED_MODULE_0__.info('');
 
 	// Get context
@@ -32683,7 +32685,7 @@ try {
 		_actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Pulling branches...`);
 
 		// Get all branches
-		const { data: branches } = await octokit.paginate(
+		const branches = await octokit.paginate(
 			octokit.rest.repos.listBranches,
 			{
 				owner: context.repo.owner,
