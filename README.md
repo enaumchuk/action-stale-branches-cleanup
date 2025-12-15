@@ -1,20 +1,20 @@
-# Github action to cleanup stale branches.
+# GitHub action to clean up stale branches.
 
 This action finds and deletes stale branches.
 
 A stale branch is defined as a branch that:
-- has last commit older than `stale-days` (by default 90) days
+- has its last commit older than `stale-days` (90 days by default)
 - is not a default branch of the repository
 - is not a protected branch
-- is not in `skip-branches` list (by default 'main,master,develop,development,staging,production,keep-alive-*')
+- is not in the `skip-branches` list (by default 'main,master,develop,development,staging,production,keep-alive-*')
 
-Additionally by default:
+By default, a stale branch also:
 - has no unmerged commits (controlled by `skip-unmerged`)
 - is not linked to an open PR (controlled by `skip-open-prs`)
 
 ## Usage
 
-Create a workflow `.yml` file in your repository's `.github/workflows` directory. [Workflow examples](#workflow-examples) are available below. For more information, reference the GitHub Documentation for [Creating a workflow file](https://help.github.com/en/articles/configuring-a-workflow#creating-a-workflow-file).
+Create a workflow YAML file in your repository's `.github/workflows` directory. [Workflow examples](#workflow-examples) are available below. For more information, see the GitHub documentation on [creating a workflow file](https://help.github.com/en/articles/configuring-a-workflow#creating-a-workflow-file).
 
 Inputs are defined in [`action.yml`](action.yml). None are required.
 
@@ -33,17 +33,17 @@ Inputs are defined in [`action.yml`](action.yml). None are required.
 
 ## Monitoring GitHub rate limits
 
-In case you have a large number of branches to process you have to watch GitHub REST API rate limits. To prevent potential issues - like temporary or permanent API access ban - there are a few related input parameters to use:
-- `rate-limit-threshold` - adresses primary rate limit. The action stops processing branches (hitting GitHub API) when number of requests remaining in the current rate limit window falls below that number
-- `max-branches-to-delete` - with automatically generated token for a workflow run there is a hard limit 1000 API hits per hour for standard repos. Use this parameter to stay below that limit.
-- `process-throttle-ms` - this parameter controls a delay after processing each branch. You can use this delay to slow down branch processing rate if you're hitting a secondary rate limits.
-- `continue-on-errors` - this parameter could be used to help with monitoring secondary rate limits related errors. It is suggested to NOT ignore errors caused by hitting a secondary rate limits
+If you have a large number of branches to process, you need to monitor GitHub REST API rate limits. To prevent potential issues - such as temporary or permanent API access bans - there are several related input parameters you can use:
+- `rate-limit-threshold` - addresses primary rate limit. The action stops processing branches (hitting GitHub API) when the number of remaining requests in the current rate limit window falls below this value
+- `max-branches-to-delete` - with an automatically generated token for a workflow run, there is a hard limit of 1,000 API requests per hour for standard repositories. Use this parameter to stay below that limit.
+- `process-throttle-ms` - controls a delay after processing each branch. You can use this delay to slow down the branch processing rate if you are hitting secondary rate limits.
+- `continue-on-errors` - can be used to help monitor errors related to secondary rate limits. It is recommended not to ignore errors caused by hitting secondary rate limits.
 
 ## Workflow examples
 
 ### Use defaults
 
-This workflow deletes merged branches older than 90 days and not linked to open PRs. Exemptions: default branch, protected branches and default skip-branches list 'main,master,develop,development,staging,production,keep-alive-*'.
+This workflow deletes merged branches that are older than 90 days and not linked to open PRs. Exemptions: the default branch, protected branches, and the default skip-branches list 'main,master,develop,development,staging,production,keep-alive-*'.
 
 ```yaml
 # .github/workflows/stale-branches-cleanup.yml
