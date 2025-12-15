@@ -143,7 +143,7 @@ try {
 			const canProceed = await isSafeToProceedWithApiCalls(octokit, rateLimitThreshold);
 			if (!canProceed) {
 				core.warning(`API rate limit below threshold of ${rateLimitThreshold}. Stopping further processing...`);
-				break;
+				throw new Error('API rate limit exceeded threshold');
 			}
 
 			// Stop if max deletions reached
@@ -269,7 +269,7 @@ try {
 	core.setOutput('deleted-branches', outputDeletedBranches);
 	core.info(`Deleted ${deletedCount} branches.`);
 } catch (error) {
-	if (deletedCount !== undefined) {
+	if (!isNaN(deletedCount)) {
 		core.setOutput('deleted-branches', outputDeletedBranches);
 		core.info(`Deleted ${deletedCount} branches.`);
 	}
