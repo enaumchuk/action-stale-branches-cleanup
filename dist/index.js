@@ -32707,7 +32707,7 @@ try {
 			const canProceed = await isSafeToProceedWithApiCalls(octokit, rateLimitThreshold);
 			if (!canProceed) {
 				_actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`API rate limit below threshold of ${rateLimitThreshold}. Stopping further processing...`);
-				break;
+				throw new Error('API rate limit exceeded threshold');
 			}
 
 			// Stop if max deletions reached
@@ -32833,7 +32833,7 @@ try {
 	_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('deleted-branches', outputDeletedBranches);
 	_actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Deleted ${deletedCount} branches.`);
 } catch (error) {
-	if (deletedCount !== undefined) {
+	if (!isNaN(deletedCount)) {
 		_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('deleted-branches', outputDeletedBranches);
 		_actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Deleted ${deletedCount} branches.`);
 	}
