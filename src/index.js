@@ -1,11 +1,11 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
-async function isSafeToProceedWithApiCalls(threshold = 100) {
+async function isSafeToProceedWithApiCalls(octokit, threshold = 100) {
 	// Use the built-in octokit client from @actions/github
 	try {
 		// This call itself does not count against your rate limit.
-		const { data } = await github.rest.rateLimit.get();
+		const { data } = await octokit.rest.rateLimit.get();
 
 		const coreLimit = data.resources.core;
 
@@ -19,35 +19,6 @@ async function isSafeToProceedWithApiCalls(threshold = 100) {
 		// If we can't determine the rate limit, assume it's safe to proceed
 		return true;
 	}
-  }
-
-async function processBranchExclusions(exclusionString) {
-	const branchNames = [];
-	const branchPatternsRegex = [];
-
-	// Split the input string by commas and trim whitespace from each part
-	const exclusions = exclusionString.split(',').map(item => item.trim()).filter(item => item.length > 0);
-
-	for (const item of exclusions) {
-	  // Check if the item contains a wildcard character '*'
-	  if (item.includes('*')) {
-		// It's a pattern/glob
-
-		// Convert the glob pattern into a JavaScript-compatible RegExp object.
-		// 1. Replace the '*' wildcard with '.*' (match any character zero or more times).
-		const regexPattern = new RegExp('^' + item.replace(/\*/g, '.*') + '$');
-		branchPatternsRegex.push(regexPattern);
-
-	  } else {
-		// It's a literal branch name
-		branchNames.push(item);
-	  }
-	}
-
-	return {
-	  branchNames: branchNames,
-	  branchPatternsRegex: branchPatternsRegex
-	};
   }
 
 try {
@@ -93,6 +64,35 @@ try {
 	const now = new Date();
 	const staleThreshold = new Date(now.getTime() - staleDays * 24 * 60 * 60 * 1000);
 
+	// Parse branch exclusions
+	core.info(`Original skip-branches value: '${skipBranches}'`);
+	const skipBranchNames = [];
+	const skipBranchPatternsRegex = [];
+
+	// Split the input string by commas and trim whitespace from each part
+	const exclusions = skipBranches.split(',').map(item => item.trim()).filter(item => item.length > 0);
+
+	for (const item of exclusions) {
+	  // Check if the item contains a wildcard character '*'
+	  if (item.includes('*')) {
+		// It's a pattern/glob
+
+		// Convert the glob pattern into a JavaScript-compatible RegExp object.
+		// 1. Replace the '*' wildcard with '.*' (match any character zero or more times).
+		const regexPattern = new RegExp('^' + item.replace(/\*/g, '.*') + '$');
+		skipBranchPatternsRegex.push(regexPattern);
+
+	  } else {
+		// It's a literal branch name
+		skipBranchNames.push(item);
+	  }
+	}
+	core.info(`Excluded branch names:`);
+	core.info(JSON.stringify(skipBranchNames, null, 2));
+	core.info(`Excluded branch patterns:`);
+	core.info(JSON.stringify(skipBranchPatternsRegex, null, 2));
+	core.info('');
+
 	// Get context
 	const context = github.context;
 	const octokit = github.getOctokit(token);
@@ -100,14 +100,6 @@ try {
 	core.info(`Stale banch clean-up started`);
 	core.info(`Repository: ${context.repo.owner}/${context.repo.repo}`);
 	core.info(`Event: ${context.eventName}`);
-
-	// Parse branch exclusions
-	const branchExclusions = processBranchExclusions(skipBranches);
-	core.info(`Excluded branch names:`);
-	core.info(JSON.stringify(branchExclusions.branchNames, null, 2));
-	core.info(`Excluded branch patterns:`);
-	core.info(JSON.stringify(branchExclusions.branchPatternsRegex, null, 2));
-	core.info('');
 
 	// Analyze repo info
 	const { data: repo } = await octokit.rest.repos.get({
@@ -127,11 +119,13 @@ try {
 		core.info(`Pulling branches...`);
 
 		// Get all branches
-		const { data: branches } = await octokit.rest.repos.listBranches({
-			owner: context.repo.owner,
-			repo: context.repo.repo,
-			per_page: 100
-		});
+		const { data: branches } = await octokit.paginate(
+			octokit.rest.repos.listBranches,
+			{
+				owner: context.repo.owner,
+				repo: context.repo.repo,
+				per_page: 100
+			});
 
 		core.info(`Found ${branches.length} branches`);
 		core.info('');
@@ -140,7 +134,7 @@ try {
 
 		for (const branch of branches) {
 			// Check API rate limit
-			const canProceed = await isSafeToProceedWithApiCalls(rateLimitThreshold);
+			const canProceed = await isSafeToProceedWithApiCalls(octokit, rateLimitThreshold);
 			if (!canProceed) {
 				core.warning(`API rate limit below threshold of ${rateLimitThreshold}. Stopping further processing.`);
 				break;
@@ -169,11 +163,11 @@ try {
 			// check if the branch excluded
 			let isExcluded = false;
 			// Check names
-			if (branchExclusions.branchNames.includes(branch.name)) {
+			if (skipBranchNames.includes(branch.name)) {
 				isExcluded = true;
 			} else {
 				// Check patterns
-				for (const pattern of branchExclusions.branchPatternsRegex) {
+				for (const pattern of skipBranchPatternsRegex) {
 					if (pattern.test(branch.name)) {
 						isExcluded = true;
 						break; // Stop checking patterns once a match is found
