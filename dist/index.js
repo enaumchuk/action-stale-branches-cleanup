@@ -32574,9 +32574,9 @@ __nccwpck_require__.r(__webpack_exports__);
  */
 function loadCachedBranches() {
   try {
-    if (!fs.existsSync('scanned-branches.json')) return new Set();
+    if (!fs__WEBPACK_IMPORTED_MODULE_2___default().existsSync('scanned-branches.json')) return new Set();
 
-    const data = fs.readFileSync('scanned-branches.json', 'utf8');
+    const data = fs__WEBPACK_IMPORTED_MODULE_2___default().readFileSync('scanned-branches.json', 'utf8');
     const parsed = JSON.parse(data);
 
     // Validate structure and date
@@ -32587,7 +32587,7 @@ function loadCachedBranches() {
 
     return new Set(parsed.branches);
   } catch (error) {
-	core.warning(`Failed to load scanned-branches.json: ${error.message}`);
+	_actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to load scanned-branches.json: ${error.message}`);
     return new Set();
   }
 }
@@ -32682,7 +32682,7 @@ try {
 
 	// load previously scanned branches
 	if (scanOncePerDay) {
-		scannedBranches = loadCachedState();
+		scannedBranches = loadCachedBranches();
 		_actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Loaded ${scannedBranches.size} previously scanned branches`);
 		_actions_core__WEBPACK_IMPORTED_MODULE_0__.info('');
 	}

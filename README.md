@@ -66,8 +66,10 @@ jobs:
           restore-keys: |
             scanned-branches-
       - name: Stale Branches Cleanup
+        if: ${{ always() }}
         uses: enaumchuk/stale-branches-cleanup@v1
       - name: Save scanned branches cache
+        if: ${{ always() }}
         uses: actions/cache/save@v4
         with:
           path: scanned-branches.json
