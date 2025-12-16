@@ -116,7 +116,7 @@ try {
 
 	// load previously scanned branches
 	if (scanOncePerDay) {
-		scannedBranches = loadCachedState();
+		scannedBranches = loadCachedBranches();
 		core.info(`Loaded ${scannedBranches.size} previously scanned branches`);
 		core.info('');
 	}
