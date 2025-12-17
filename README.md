@@ -57,7 +57,13 @@ on: workflow_dispatch
 jobs:
   stale-branches-cleanup:
     runs-on: ubuntu-latest
+    env:
+      TZ: America/Chicago
     steps:
+      - name: Set timezone
+        run: |
+          sudo timedatectl set-timezone $TZ
+          date
       - name: Restore scanned branches cache
         uses: actions/cache/restore@v4
         with:
@@ -67,7 +73,7 @@ jobs:
             scanned-branches-
       - name: Stale Branches Cleanup
         if: ${{ always() }}
-        uses: enaumchuk/stale-branches-cleanup@v1
+        uses: enaumchuk/action-stale-branches-cleanup@v1
       - name: Save scanned branches cache
         if: ${{ always() }}
         uses: actions/cache/save@v4
@@ -90,13 +96,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Stale Branches Cleanup
-        uses: enaumchuk/stale-branches-cleanup@v1
+        uses: enaumchuk/action-stale-branches-cleanup@v1
         with:
           dry-run: true
 ```
 
 ### Scheduled cleanup
-This workflow will run daily at 3:00am. It will delete merged and unmerged stale branches.
+This workflow will run daily at once an hour at 1:00-3:00am. It will delete merged and unmerged stale branches.
 
 ```yaml
 # .github/workflows/stale-branches-cleanup-scheduled.yml
@@ -106,15 +112,37 @@ name: Stale Branches Cleanup - Scheduled
 on:
   schedule:
     - cron: '0 3 * * *'
+      timezone: 'America/Chicago'
 
 jobs:
   stale-branches-cleanup:
     runs-on: ubuntu-latest
+    env:
+      TZ: America/Chicago
     steps:
-      - name: Stale Branches Cleanup
-        uses: enaumchuk/stale-branches-cleanup@v1
+      - name: Set timezone
+        run: |
+          sudo timedatectl set-timezone $TZ
+          date
+      - name: Restore scanned branches cache
+        uses: actions/cache/restore@v4
         with:
+          path: scanned-branches.json
+          key: scanned-branches-${{ github.run_id }}
+          restore-keys: |
+            scanned-branches-
+      - name: Stale Branches Cleanup
+        uses: enaumchuk/action-stale-branches-cleanup@v1
+        with:
+          stale-days: 120
+          scan-once-per-day: true
           skip-unmerged: false
+      - name: Save scanned branches cache
+        if: ${{ always() }}
+        uses: actions/cache/save@v4
+        with:
+          path: scanned-branches.json
+          key: scanned-branches-${{ github.run_id }}
 ```
 
 ### Note.
